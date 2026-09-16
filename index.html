@@ -53,8 +53,8 @@
             <select id="location" required>
                 <option value="หน้าร้าน">หน้าร้าน</option>
                 <option value="ตลาดบางระจัน">ตลาดบางระจัน</option>
-                <option value="สี่แยกบ้านจ่า">จัดส่งตามที่อยู่</option>
-                 <option value="สามแยกหนองลี">จัดส่งตามที่อยู่</option>
+                <option value="สี่แยกบ้านจ่า">สี่แยกบ้านจ่า</option>
+                 <option value="สามแยกหนองลี">สามแยกหนองลี</option>
             </select>
         </div>
 
@@ -103,8 +103,6 @@ function submitOrder() {
             icon: 'success',
             title: 'คัดลอกข้อความเรียบร้อยแล้ว!',
             text: 'ระบบก๊อปปี้ออเดอร์ลงคลิปบอร์ดให้แล้ว เปิดแชท LINE แล้ววาง (Paste) ส่งได้เลยครับ',
-            confirmButtonText: 'เปิดแชท LINE ร้านค้า',
-            confirmButtonColor: '#06c755'
         }).then((result) => {
             if (result.isConfirmed) {
                 // ⚠️ เปลี่ยนลิงก์ไลน์ตรงนี้เป็นลิงก์ LINE OA ร้านของคุณ (เช่น https://line.me/R/ti/p/@yourlineid)
