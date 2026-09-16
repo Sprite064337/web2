@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>สั่งซื้อสินค้า - Papaporn Farm</title>
+    <!-- SweetAlert2 สำหรับป๊อปอัพสวยๆ -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { box-sizing: border-box; font-family: 'Kanit', sans-serif; }
-        body { background-color: #f4f6f9; display: flex; justify-content: center; padding: 20px; }
+        body { background-color: #f4f6f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
         .card { background: #fff; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
         .header { background: linear-gradient(135deg, #0d32a8, #f05a28); color: white; padding: 20px; text-align: center; font-size: 20px; font-weight: bold; }
         .form-group { padding: 15px 20px 0 20px; }
         label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; color: #333; }
         select, input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; outline: none; }
-        .btn-submit { background-color: #06c755; color: white; border: none; width: calc(100% - 40px); margin: 20px; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; }
+        select:focus, input:focus { border-color: #0d32a8; }
+        .btn-submit { background-color: #06c755; color: white; border: none; width: calc(100% - 40px); margin: 20px; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s; }
         .btn-submit:hover { background-color: #05b34c; }
         .footer { text-align: center; font-size: 11px; color: #888; padding-bottom: 15px; }
     </style>
@@ -26,6 +28,7 @@
     </div>
     
     <form id="orderForm">
+        <!-- 1. เลือกจำนวนไข่ -->
         <div class="form-group">
             <label>🥚 ไข่เป็ด (เลือกจำนวนแผง) *</label>
             <select id="eggQty" required>
@@ -38,34 +41,47 @@
             </select>
         </div>
 
+        <!-- 2. ชื่อ-นามสกุล -->
         <div class="form-group">
             <label>ชื่อ-นามสกุล ผู้รับ *</label>
             <input type="text" id="name" placeholder="ชื่อ และ นามสกุล" required>
         </div>
 
+        <!-- 3. เบอร์โทรศัพท์ -->
         <div class="form-group">
             <label>เบอร์โทรศัพท์ *</label>
             <input type="tel" id="phone" placeholder="ตัวอย่าง 0812345678" required>
         </div>
 
+        <!-- 4. จุดรับสินค้า (แก้ไขชื่อสถานที่เรียบร้อยแล้ว) -->
         <div class="form-group">
             <label>📍 เลือกจุดรับสินค้า *</label>
             <select id="location" required>
                 <option value="หน้าร้าน">หน้าร้าน</option>
                 <option value="ตลาดบางระจัน">ตลาดบางระจัน</option>
                 <option value="สี่แยกบ้านจ่า">สี่แยกบ้านจ่า</option>
-                 <option value="สามแยกหนองลี">สามแยกหนองลี</option>
+                <option value="สามแยกหนองลี">สามแยกหนองลี</option>
             </select>
         </div>
 
+        <!-- 5. วิธีชำระเงิน -->
         <div class="form-group">
             <label>💳 วิธีการชำระเงิน *</label>
-            <select id="payment" required>
+            <select id="payment" required onchange="toggleQRCode()">
                 <option value="เงินสด">เงินสด</option>
                 <option value="โอนเงินผ่านธนาคาร">โอนเงินผ่านธนาคาร</option>
             </select>
         </div>
 
+        <!-- 📸 กล่องแสดง QR Code สำหรับโอนเงิน (ซ่อนไว้เป็นค่าเริ่มต้น) -->
+        <div id="qrContainer" style="display: none; text-align: center; margin: 15px 20px 0 20px; padding: 15px; background: #f8f9fa; border: 1px dashed #06c755; border-radius: 10px;">
+            <p style="font-weight: bold; color: #333; margin: 0 0 8px 0; font-size: 14px;">สแกน QR Code เพื่อชำระเงิน</p>
+            <!-- ⚠️ ใส่ลิงก์รูปภาพ QR Code พร้อมเพย์จริงของคุณตรง src ด้านล่างนี้ -->
+            <img id="qrImage" src="download.jpg" alt="QR Code ชำระเงิน" style="max-width: 200px; width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <p style="font-size: 12px; color: #666; margin: 8px 0 0 0;">เมื่อโอนเงินเรียบร้อยแล้ว อย่าลืมแนบสลิปใน LINE นะคะ 🙏</p>
+        </div>
+
+        <!-- ปุ่มกดสั่งซื้อ -->
         <button type="button" class="btn-submit" onclick="submitOrder()">ส่งข้อมูลสั่งซื้อเข้าไลน์ร้าน</button>
     </form>
 
@@ -75,6 +91,19 @@
 </div>
 
 <script>
+// 🔄 ฟังก์ชัน ซ่อน/แสดง QR Code ตามการเลือกชำระเงิน
+function toggleQRCode() {
+    var paymentMethod = document.getElementById("payment").value;
+    var qrContainer = document.getElementById("qrContainer");
+
+    if (paymentMethod === "โอนเงินผ่านธนาคาร") {
+        qrContainer.style.display = "block";
+    } else {
+        qrContainer.style.display = "none";
+    }
+}
+
+// 🚀 ฟังก์ชัน คัดลอกออเดอร์ลง Clipboard และเปิด LINE
 function submitOrder() {
     var eggQty = document.getElementById("eggQty").value;
     var name = document.getElementById("name").value.trim();
@@ -83,35 +112,58 @@ function submitOrder() {
     var payment = document.getElementById("payment").value;
 
     if (!eggQty || !name || !phone) {
-        Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลให้ครบถ้วน', text: 'โปรดเลือกจำนวนไข่ กรอกชื่อ และเบอร์โทรศัพท์' });
+        Swal.fire({
+            icon: 'warning',
+            title: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+            text: 'โปรดเลือกจำนวนไข่ กรอกชื่อ และเบอร์โทรศัพท์ก่อนกดสั่งซื้อครับ'
+        });
         return;
     }
 
-    // 1. จัดรูปแบบข้อความออเดอร์
+    // 📝 รูปแบบข้อความออเดอร์ส่งเข้าไลน์
     var orderText = `[ออเดอร์ Papaporn Farm]\n` +
                     `ไข่ขนาดเล็ก: ${eggQty}\n` +
                     `ไข่ขนาดใหญ่: ไม่รับ\n` +
                     `ชื่อผู้รับ: ${name}\n` +
                     `เบอร์โทร: ${phone}\n` +
-                    `ที่อยู่จัดส่ง: ${location} (วิธีชำระ: ${payment})`;
+                    `ที่อยู่จัดส่ง: ${location} (${payment})`;
 
-    // 2. คัดลอกข้อความลง คลิปบอร์ด (Clipboard)
+    // 📋 คัดลอกข้อความเข้า Clipboard อัตโนมัติ
     navigator.clipboard.writeText(orderText).then(function() {
         
-        // 3. แสดงแจ้งเตือนคัดลอกสำเร็จ + ปุ่มกดไปที่ LINE
         Swal.fire({
             icon: 'success',
             title: 'คัดลอกข้อความเรียบร้อยแล้ว!',
-            text: 'ระบบก๊อปปี้ออเดอร์ลงคลิปบอร์ดให้แล้ว เปิดแชท LINE แล้ววาง (Paste) ส่งได้เลยครับ',
+            text: 'ระบบก๊อปปี้ออเดอร์ลงคลิปบอร์ดให้แล้ว กดปุ่มด้านล่างเพื่อเปิดแชท LINE แล้ววาง (Paste) ส่งได้เลยครับ',
+            confirmButtonText: 'เปิดแชท LINE ร้านค้า',
+            confirmButtonColor: '#06c755'
         }).then((result) => {
             if (result.isConfirmed) {
-                // ⚠️ เปลี่ยนลิงก์ไลน์ตรงนี้เป็นลิงก์ LINE OA ร้านของคุณ (เช่น https://line.me/R/ti/p/@yourlineid)
-                window.location.href = "https://line.me/R/ti/p/@yourlineid"; 
+                // ⚠️ เปลี่ยนลิงก์นี้ให้เป็นลิงก์ LINE OA / เพิ่มเพื่อน ของร้านคุณครับ
+                window.location.href = "https://line.me/R/ti/p/@364jrrez?oat_content=url&ts=09170028"; 
             }
         });
 
     }).catch(function(err) {
-        Swal.fire({ icon: 'error', title: 'ไม่สามารถคัดลอกได้', text: 'โปรดลองใหม่อีกครั้ง' });
+        // กรณีเบราว์เซอร์ไม่อนุญาต ให้ใช้วิธีสำรองคัดลอก
+        var tempInput = document.createElement("textarea");
+        tempInput.value = orderText;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+
+        Swal.fire({
+            icon: 'success',
+            title: 'คัดลอกข้อความเรียบร้อยแล้ว!',
+            text: 'กดปุ่มด้านล่างเพื่อเปิดแชท LINE แล้ววาง (Paste) ส่งได้เลยครับ',
+            confirmButtonText: 'เปิดแชท LINE ร้านค้า',
+            confirmButtonColor: '#06c755'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "https://line.me/R/ti/p/@364jrrez?oat_content=url&ts=09170028"; 
+            }
+        });
     });
 }
 </script>
